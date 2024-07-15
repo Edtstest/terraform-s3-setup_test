@@ -114,6 +114,7 @@ jobs:
         } else {
             Write-Host "Failed to retrieve dev workspace ID."
             exit 1
+        }
 
     - name: Send Email Notification for Approval
       if: success()
