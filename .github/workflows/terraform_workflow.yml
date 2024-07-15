@@ -24,14 +24,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y powershell
 
-    - name: Run Terraform Workflow
-      run: pwsh ./terraform_workflow.ps1
-      env:
-        TERRAFORM_API_TOKEN: ${{ secrets.TERRAFORM_API_TOKEN }}
-        ORG_NAME: Edts
-        DEV_WORKSPACE_NAME: terraform-s3-setup
-        TEST_WORKSPACE_NAME: Terraform-s3-setup-Test-POS
-
+    
     - name: Send Email Notification for Approval
       if: success()
       uses: dawidd6/action-send-mail@v3
