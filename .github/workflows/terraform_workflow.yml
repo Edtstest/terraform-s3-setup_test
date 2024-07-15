@@ -81,18 +81,28 @@ jobs:
         function Get-WorkspaceID {
             param ($WorkspaceName)
             $uri = "https://app.terraform.io/api/v2/organizations/$ORG_NAME/workspaces/$WorkspaceName"
-            $workspaceId = (Invoke-TerraformApi -Uri $uri).data.id
-            Write-Host "Workspace ID for ${WorkspaceName}: $workspaceId"
-            return $workspaceId
+            try {
+                $workspaceId = (Invoke-TerraformApi -Uri $uri).data.id
+                Write-Host "Workspace ID for ${WorkspaceName}: $workspaceId"
+                return $workspaceId
+            } catch {
+                Write-Host "Failed to get workspace ID: $($_.Exception.Message)"
+                throw $_
+            }
         }
 
         # Get latest run status
         function Get-LatestRunStatus {
             param ($WorkspaceID)
             $uri = "https://app.terraform.io/api/v2/workspaces/$WorkspaceID/runs"
-            $latestRunStatus = (Invoke-TerraformApi -Uri $uri).data[0].attributes.status
-            Write-Host "Latest run status for workspace ID ${WorkspaceID}: $latestRunStatus"
-            return $latestRunStatus
+            try {
+                $latestRunStatus = (Invoke-TerraformApi -Uri $uri).data[0].attributes.status
+                Write-Host "Latest run status for workspace ID ${WorkspaceID}: $latestRunStatus"
+                return $latestRunStatus
+            } catch {
+                Write-Host "Failed to get latest run status: $($_.Exception.Message)"
+                throw $_
+            }
         }
 
         $devWorkspaceID = Get-WorkspaceID -WorkspaceName $DEV_WORKSPACE_NAME
