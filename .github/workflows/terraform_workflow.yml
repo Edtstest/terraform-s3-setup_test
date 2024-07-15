@@ -75,7 +75,7 @@ jobs:
                 Write-Host "Error: $($_ | ConvertTo-Json -Compress)"
                 throw $_
             }
-        
+        }
 
         # Get workspace ID
         function Get-WorkspaceID {
@@ -111,10 +111,10 @@ jobs:
                 Write-Host "Latest run in dev workspace did not succeed. No action taken."
                 exit 1
             }
-        } 
+        } else {
+            Write-Host "Failed to retrieve dev workspace ID."
+            exit 1
 
-
- 
     - name: Send Email Notification for Approval
       if: success()
       uses: dawidd6/action-send-mail@v3
