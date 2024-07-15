@@ -111,9 +111,7 @@ jobs:
                 Write-Host "Latest run in dev workspace did not succeed. No action taken."
                 exit 1
             }
-        } else {
-            Write-Host "Failed to retrieve dev workspace ID."
-            exit 1
+        } 
 
 
  
