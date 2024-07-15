@@ -69,8 +69,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    - name: Set up PowerShell
-      uses: azure/setup-powershell@v1
+    - name: Install PowerShell
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y powershell
 
     - name: Trigger Test Workspace
       run: pwsh ./terraform_workflow.ps1
