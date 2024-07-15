@@ -70,7 +70,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Set up PowerShell
-      uses: actions/setup-pwsh@v2
+      uses: azure/setup-powershell@v1
 
     - name: Trigger Test Workspace
       run: pwsh ./terraform_workflow.ps1
