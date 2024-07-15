@@ -3,7 +3,7 @@ name: Terraform Workflow
 on:
   push:
     branches:
-      - main  # Trigger on push to thse main branch
+      - main  # Triggers on push to thse main branch
 
 jobs:
   dev:
