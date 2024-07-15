@@ -53,7 +53,7 @@ jobs:
     needs: dev
     runs-on: ubuntu-latest
     environment:
-      name: approval-required  # Links to the environment you created
+      name: approval-required-test  # Links to the environment you created
       url: https://github.com/harsharanjohal/terraform-s3-setup/actions
 
     steps:
