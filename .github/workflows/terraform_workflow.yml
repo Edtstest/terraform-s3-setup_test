@@ -27,7 +27,7 @@ jobs:
     - name: Run Terraform Workflow for Dev
       shell: pwsh 
       run: |
-        $TERRAFORM_API_TOKEN = $env:TERRAFORM_API_TOKEN
+        $TERRAFORM_API_TOKEN = "${{ secrets.TERRAFORM_API_TOKEN }}"
         $ORG_NAME = "Edts"
         $DEV_WORKSPACE_NAME = "terraform-s3-setup"
         $TEST_WORKSPACE_NAME  = "Terraform-s3-setup-Test-POS"
