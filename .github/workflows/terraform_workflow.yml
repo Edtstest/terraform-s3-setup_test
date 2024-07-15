@@ -1,0 +1,80 @@
+name: Terraform Workflow
+
+on:
+  push:
+    branches:
+      - main  # Trigger on push to the main branch
+
+jobs:
+  dev:
+    name: Run Dev Workspace
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up .NET Core SDK
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '6.0.x' # Adjust this to your required .NET version
+
+    - name: Install PowerShell
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y powershell
+
+    - name: Run Terraform Workflow
+      run: pwsh ./terraform_workflow.ps1
+      env:
+        TERRAFORM_API_TOKEN: ${{ secrets.TERRAFORM_API_TOKEN }}
+        ORG_NAME: Edts
+        DEV_WORKSPACE_NAME: terraform-s3-setup
+        TEST_WORKSPACE_NAME: Terraform-s3-setup-Test-POS
+
+    - name: Send Email Notification for Approval
+      if: success()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.office365.com  # Change if using a different SMTP server
+        server_port: 587
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: 'Approval Needed for Terraform Deployment'
+        body: |
+          The Dev workspace has been successfully applied. 
+          Please review and approve to proceed with the Test workspace deployment.
+          [Approve Deployment](https://github.com/harsharanjohal/terraform-s3-setup/actions?query=workflow%3A"Terraform+Workflow")
+        to: harsharan@edts.ca
+        from: dev.pos@alba365.com
+
+  approval:
+    name: Await Approval
+    needs: dev
+    runs-on: ubuntu-latest
+    environment:
+      name: approval-required  # Links to the environment you created
+      url: https://github.com/harsharanjohal/terraform-s3-setup/actions
+
+    steps:
+      - name: Awaiting Approval
+        run: echo "Awaiting approval from manager to proceed with the Test workspace deployment."
+
+  test:
+    name: Run Test Workspace
+    needs: approval
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up PowerShell
+      uses: actions/setup-pwsh@v2
+
+    - name: Trigger Test Workspace
+      run: pwsh ./terraform_workflow.ps1
+      env:
+        TERRAFORM_API_TOKEN: ${{ secrets.TERRAFORM_API_TOKEN }}
+        ORG_NAME: Edts
+        TEST_WORKSPACE_NAME: Terraform-s3-setup-Test-POS
