@@ -62,7 +62,7 @@ jobs:
 
   test:
     name: Run Test Workspace
-    needs: approval
+    needs: [dev, approval]
     runs-on: ubuntu-latest
 
     steps:
