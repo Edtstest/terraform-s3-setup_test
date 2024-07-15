@@ -24,7 +24,98 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y powershell
 
-    
+    - name: Run Terraform Workflow for Dev
+      run: |
+        $TERRAFORM_API_TOKEN = $env:TERRAFORM_API_TOKEN
+        $ORG_NAME = "Edts"
+        $DEV_WORKSPACE_NAME = "terraform-s3-setup"
+        $TEST_WORKSPACE_NAME  = "Terraform-s3-setup-Test-POS"
+
+        # Log the initial variables
+        Write-Host "TERRAFORM_API_TOKEN: $TERRAFORM_API_TOKEN"
+        Write-Host "ORG_NAME: $ORG_NAME"
+        Write-Host "DEV_WORKSPACE_NAME: $DEV_WORKSPACE_NAME"
+
+        # Function to make API requests
+        function Invoke-TerraformApi {
+            param (
+                [string]$Uri,
+                [string]$Method = "GET",
+                [string]$Body = $null
+            )
+            
+            # Log the input parameters
+            Write-Host "Invoke-TerraformApi called with parameters:"
+            Write-Host "Uri: $Uri"
+            Write-Host "Method: $Method"
+            Write-Host "Body: $Body"
+
+            $headers = @{
+                "Authorization" = "Bearer $TERRAFORM_API_TOKEN"
+                "Content-Type" = "application/vnd.api+json"
+            }
+            
+            # Log the headers
+            Write-Host "Headers: $($headers | ConvertTo-Json -Compress)"
+            
+            try {
+                if ($Method -eq "POST" -and $Body) {
+                    $response = Invoke-RestMethod -Uri $Uri -Headers $headers -Method $Method -Body $Body
+                } else {
+                    $response = Invoke-RestMethod -Uri $Uri -Headers $headers -Method $Method
+                }
+                
+                # Log the response
+                Write-Host "Response: $($response | ConvertTo-Json -Compress)"
+                
+                return $response
+            } catch {
+                # Log any errors
+                Write-Host "Error: $($_ | ConvertTo-Json -Compress)"
+                throw $_
+            }
+        }
+
+        # Get workspace ID
+        function Get-WorkspaceID {
+            param ($WorkspaceName)
+            $uri = "https://app.terraform.io/api/v2/organizations/$ORG_NAME/workspaces/$WorkspaceName"
+            $workspaceId = (Invoke-TerraformApi -Uri $uri).data.id
+            Write-Host "Workspace ID for ${WorkspaceName}: $workspaceId"
+            return $workspaceId
+        }
+
+        # Get latest run status
+        function Get-LatestRunStatus {
+            param ($WorkspaceID)
+            $uri = "https://app.terraform.io/api/v2/workspaces/$WorkspaceID/runs"
+            $latestRunStatus = (Invoke-TerraformApi -Uri $uri).data[0].attributes.status
+            Write-Host "Latest run status for workspace ID ${WorkspaceID}: $latestRunStatus"
+            return $latestRunStatus
+        }
+
+        $devWorkspaceID = Get-WorkspaceID -WorkspaceName $DEV_WORKSPACE_NAME
+
+        if ($devWorkspaceID) {
+            Write-Host "Checking latest run status for dev workspace..."
+            do {
+                $latestRunStatus = Get-LatestRunStatus -WorkspaceID $devWorkspaceID
+                Write-Host "Latest run status for dev workspace: $latestRunStatus"
+                Start-Sleep -Seconds 60  # Polling interval
+            } while ($latestRunStatus -ne "applied" -and $latestRunStatus -ne "failed" -and $latestRunStatus -ne "errored")
+
+            if ($latestRunStatus -eq "applied") {
+                Write-Host "Latest run in dev workspace was successfully applied. Proceeding to next steps."
+            } else {
+                Write-Host "Latest run in dev workspace did not succeed. No action taken."
+                exit 1
+            }
+        } else {
+            Write-Host "Failed to retrieve dev workspace ID."
+            exit 1
+
+
+ 
     - name: Send Email Notification for Approval
       if: success()
       uses: dawidd6/action-send-mail@v3
