@@ -75,7 +75,7 @@ jobs:
                 Write-Host "Error: $($_ | ConvertTo-Json -Compress)"
                 throw $_
             }
-        }
+        
 
         # Get workspace ID
         function Get-WorkspaceID {
