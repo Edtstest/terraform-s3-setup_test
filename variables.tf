@@ -1,5 +1,5 @@
 variable "AWS_ACCESS_KEY_ID" {
-  description = "AWS7 access key"
+  description = "AWS9 access key"
   type        = string
 }
 
